@@ -32,23 +32,28 @@ def sql_to_redis():
 
     # Clean redis before run again
     # This is for test purpose
-    r.delete("all_records")
+    r.flushdb()
 
     # Put all data from MySQL to Redis
     for row in data:
 
-        # print(row)
-        # print()
+        s = row[8][1:-1]
+        l = s.split(', ')
+        sbin = convertToBin(l)
+        pathbin = sbin.split(' ')
 
         if( r.dbsize() == 0 ):
             r.hset( 1, "id", row[0])
             r.hset( 1, "event-type", row[1])
             r.hset( 1, "occurredOn", row[2])
-            r.hset( 1, "version", row[3])
-            r.hset( 1, "graph-id", row[4])
-            r.hset( 1, "nature", row[5])
-            r.hset( 1, "object-name", row[6])
-            r.hset( 1, "path", row[7])
+            r.hset( 1, "addedOn", row[3])
+            r.hset( 1, "version", row[4])
+            r.hset( 1, "graph-id", row[5])
+            r.hset( 1, "nature", row[6])
+            r.hset( 1, "object-name", row[7])
+
+            # for i in range(-1, -9, -1):
+            #     r.lpush(1, pathbin[i])
 
             r.set("datas",1)
         else:              
@@ -56,11 +61,14 @@ def sql_to_redis():
             r.hset( datas, "id", row[0])
             r.hset( datas, "event-type", row[1])
             r.hset( datas, "occurredOn", row[2])
-            r.hset( datas, "version", row[3])
-            r.hset( datas, "graph-id", row[4])
-            r.hset( datas, "nature", row[5])
-            r.hset( datas, "object-name", row[6])
-            r.hset( datas, "path", row[7])  
+            r.hset( datas, "addedOn", row[3])
+            r.hset( datas, "version", row[4])
+            r.hset( datas, "graph-id", row[5])
+            r.hset( datas, "nature", row[6])
+            r.hset( datas, "object-name", row[7])
+
+            # for i in range(-1, -9, -1):
+            #     r.lpush(1, pathbin[i]) 
 
             r.incr("datas")
 
@@ -73,6 +81,8 @@ def sql_to_redis():
 def get_data_from_redis():
     r2 = redis.StrictRedis(REDIS_SERVER)
     # LIRE REDIS POUR VERIFIER QUE TOUT EST CORRECTEMENT IMPLEMENTE
+    for i in range(1,int(r2.get("datas").decode()) + 1):
+            print(r2.hget(i,"id").decode())
 
 
 
@@ -84,7 +94,9 @@ def convertToBin(path):
             res+='1'
         else:
             res+='0'
-        res +=' '
+
+        if elem != 'CONSUMED':
+            res +=' '
     return res
 
 
