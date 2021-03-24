@@ -43,32 +43,32 @@ def sql_to_redis():
         pathbin = sbin.split(' ')
 
         if( r.dbsize() == 0 ):
-            r.hset( 1, "id", row[0])
-            r.hset( 1, "event-type", row[1])
-            r.hset( 1, "occurredOn", row[2])
-            r.hset( 1, "addedOn", row[3])
-            r.hset( 1, "version", row[4])
-            r.hset( 1, "graph-id", row[5])
-            r.hset( 1, "nature", row[6])
-            r.hset( 1, "object-name", row[7])
+            r.hset(1, "id", row[0])
+            r.hset(1, "event-type", row[1])
+            r.hset(1, "occurredOn", row[2])
+            r.hset(1, "addedOn", row[3])
+            r.hset(1, "version", row[4])
+            r.hset(1, "graph-id", row[5])
+            r.hset(1, "nature", row[6])
+            r.hset(1, "object-name", row[7])
 
-            # for i in range(-1, -9, -1):
-            #     r.lpush(1, pathbin[i])
+            for i in range(-1, -9, -1):
+                r.lpush("path", pathbin[i])
 
             r.set("datas",1)
         else:              
             datas = int(r.get("datas").decode()) + 1
-            r.hset( datas, "id", row[0])
-            r.hset( datas, "event-type", row[1])
-            r.hset( datas, "occurredOn", row[2])
-            r.hset( datas, "addedOn", row[3])
-            r.hset( datas, "version", row[4])
-            r.hset( datas, "graph-id", row[5])
-            r.hset( datas, "nature", row[6])
-            r.hset( datas, "object-name", row[7])
+            r.hset(datas, "id", row[0])
+            r.hset(datas, "event-type", row[1])
+            r.hset(datas, "occurredOn", row[2])
+            r.hset(datas, "addedOn", row[3])
+            r.hset(datas, "version", row[4])
+            r.hset(datas, "graph-id", row[5])
+            r.hset(datas, "nature", row[6])
+            r.hset(datas, "object-name", row[7])
 
-            # for i in range(-1, -9, -1):
-            #     r.lpush(1, pathbin[i]) 
+            for i in range(-1, -9, -1):
+                r.lpush("path", pathbin[i]) 
 
             r.incr("datas")
 
@@ -101,5 +101,37 @@ def convertToBin(path):
 
 
 
-sql_to_redis()
-get_data_from_redis()
+
+def retrieveID(r, target):
+    lindex = []
+    for i in range(1,int(r.get("datas").decode())+1 ):
+        if r.hget(i,"object-name").decode() == target:
+            lindex.append(i)
+    return lindex
+
+
+def retrieve_cycle(r, lindex):
+    cycle_vie = []
+    for elem in lindex:
+        cycle_vie.append(r.lindex("path",elem).decode())
+        cycle_vie.append(r.lindex("path",elem+1).decode())
+        cycle_vie.append(r.lindex("path",elem+2).decode())
+        cycle_vie.append(r.lindex("path",elem+3).decode())
+        cycle_vie.append(r.lindex("path",elem+4).decode())
+        cycle_vie.append(r.lindex("path",elem+5).decode())
+        cycle_vie.append(r.lindex("path",elem+6).decode())
+        cycle_vie.append(r.lindex("path",elem+7).decode())
+        #etc jusqu'a ce qu'on ait tout le elem possible
+    print(cycle_vie)
+
+r = redis.StrictRedis(REDIS_SERVER)
+ind = retrieveID(r, "File-74")
+retrieve_cycle(r, ind)
+
+
+
+
+
+
+# sql_to_redis()
+# get_data_from_redis()
